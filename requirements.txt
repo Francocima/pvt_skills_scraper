@@ -1,0 +1,14 @@
+#requirements.txt
+aiohttp==3.9.3
+asyncio==3.4.3
+beautifulsoup4==4.12.2
+fastapi==0.109.0
+pydantic==2.5.2
+uvicorn==0.24.0.post1
+python-multipart==0.0.6
+selenium==4.18.1
+webdriver-manager==4.0.1
+urllib3==2.2.1
+requests==2.31.0
+undetected-chromedriver==3.5.4
+typing-extensions==4.10.0
