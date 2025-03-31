@@ -72,5 +72,4 @@ RUN chmod +x /root/.wdm/drivers/chromedriver/linux64/*/chromedriver-linux64/chro
 # Expose the port the app runs on
 EXPOSE 8080
 
-# Command to run the application
-CMD ["uvicorn", "seek_scraper_BS_v7:app", "--host", "0.0.0.0", "--port", "8080"]
+
