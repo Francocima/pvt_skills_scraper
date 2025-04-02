@@ -445,6 +445,9 @@ class SeekJobCardsScraper:
         
         if "solutions architect" in job_title_lower:
             return "Solutions Architect" 
+
+        if "test analyst" in job_title_lower:
+            return "Test Analyst"
         
         return "unknown"
 
