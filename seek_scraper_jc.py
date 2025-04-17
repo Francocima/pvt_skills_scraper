@@ -448,6 +448,39 @@ class SeekJobCardsScraper:
 
         if "test analyst" in job_title_lower:
             return "Test Analyst"
+
+        if "head of marketing" in job_title_lower:
+            return "Head of Marketing"
+
+        if "product marketer" in job_title_lower:
+            return "Product Marketer"
+
+        if "growth marketer" in job_title_lower:
+            return "Growth Marketer"
+
+        if "growth manager" in job_title_lower:
+            return "Growth Manager"
+
+        if "social media manager" in job_title_lower:
+            return "Social Media Manager"
+
+        if "content marketer" in job_title_lower:
+            return "Content Marketer"
+
+        if "digital marketer" in job_title_lower:
+            return "Digital Marketer"
+
+        if "graphic designer" in job_title_lower:
+            return "Graphic Designer"
+
+        if "community manager" in job_title_lower:
+            return "Community Manager"
+
+        if "seo specialist" in job_title_lower:
+            return "SEO Specialist"
+
+        if "marketing manager" in job_title_lower:
+            return "Marketing Manager"
         
         return "unknown"
 
