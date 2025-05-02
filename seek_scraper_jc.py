@@ -481,6 +481,18 @@ class SeekJobCardsScraper:
 
         if "marketing manager" in job_title_lower:
             return "Marketing Manager"
+
+        if "marketing coordinator" in job_title_lower:
+            return "Marketing Coordinator"
+
+        if "marketing specialist" in job_title_lower:
+            return "Marketing Specialist"
+
+        if "marketing assistant" in job_title_lower:
+            return "Marketing Assistant"
+
+        if "marketing executive" in job_title_lower:
+            return "Marketing Executive"
         
         return "unknown"
 
