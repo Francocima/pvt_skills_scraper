@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
     unzip \
+    curl \
     # Install dependencies for Chrome
     libgconf-2-4 \
     # Install Chrome dependencies
@@ -44,6 +45,18 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
+RUN CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d. -f1) \
+    && CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}") \
+    && wget -q -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip" \
+    && unzip /tmp/chromedriver.zip -d /usr/local/bin/ \
+    && rm /tmp/chromedriver.zip \
+    && chmod +x /usr/local/bin/chromedriver \
+    && chromedriver --version \
+    && google-chrome --version
+
+# Set the ChromeDriver path environment variable
+ENV PATH="/usr/local/bin:${PATH}"
+ENV CHROMEDRIVER_PATH="/usr/local/bin/chromedriver"
 
 # Set the working directory in the container
 WORKDIR /app
