@@ -106,21 +106,21 @@ class SeekJobCardsScraper:
         
         try:
         # First try to use the system-installed ChromeDriver
-        chrome_driver_path = os.environ.get("CHROMEDRIVER_PATH", "/usr/local/bin/chromedriver")
-        
-        if os.path.exists(chrome_driver_path):
-            print(f"Using system ChromeDriver at: {chrome_driver_path}")
-            self.driver = webdriver.Chrome(
-                service=Service(chrome_driver_path),
-                options=chrome_options
-            )
-        else:
-            # Fall back to webdriver_manager if system chromedriver not found
-            print("System ChromeDriver not found, falling back to webdriver_manager")
-            self.driver = webdriver.Chrome(
-                service=Service(ChromeDriverManager().install()),
-                options=chrome_options
-            )
+            chrome_driver_path = os.environ.get("CHROMEDRIVER_PATH", "/usr/local/bin/chromedriver")
+            
+            if os.path.exists(chrome_driver_path):
+                print(f"Using system ChromeDriver at: {chrome_driver_path}")
+                self.driver = webdriver.Chrome(
+                    service=Service(chrome_driver_path),
+                    options=chrome_options
+                )
+            else:
+                # Fall back to webdriver_manager if system chromedriver not found
+                print("System ChromeDriver not found, falling back to webdriver_manager")
+                self.driver = webdriver.Chrome(
+                    service=Service(ChromeDriverManager().install()),
+                    options=chrome_options
+                )
             
         # Set window size
         self.driver.set_window_size(1200, 720)
