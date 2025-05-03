@@ -128,8 +128,8 @@ class SeekJobCardsScraper:
         # Execute JavaScript to mask WebDriver presence
         self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         
-    except Exception as e:
-        print(f"Error setting up ChromeDriver: {str(e)}") 
+        except Exception as e:
+            print(f"Error setting up ChromeDriver: {str(e)}") 
 
     async def __aenter__(self):
         """Set up resources when entering context"""
