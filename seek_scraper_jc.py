@@ -102,18 +102,34 @@ class SeekJobCardsScraper:
         # Set user agent - Picks randomly from the list
         chrome_options.add_argument(f"user-agent={random.choice(self.user_agents)}")
     
-        chromedriver_path = '/usr/local/bin/chromedriver'
+        ### chromedriver_path = '/usr/local/bin/chromedriver'
         
-        self.driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()),  # This line dynamically gets the right driver
-            options=chrome_options
-        )
+        try:
+        # First try to use the system-installed ChromeDriver
+        chrome_driver_path = os.environ.get("CHROMEDRIVER_PATH", "/usr/local/bin/chromedriver")
+        
+        if os.path.exists(chrome_driver_path):
+            print(f"Using system ChromeDriver at: {chrome_driver_path}")
+            self.driver = webdriver.Chrome(
+                service=Service(chrome_driver_path),
+                options=chrome_options
+            )
+        else:
+            # Fall back to webdriver_manager if system chromedriver not found
+            print("System ChromeDriver not found, falling back to webdriver_manager")
+            self.driver = webdriver.Chrome(
+                service=Service(ChromeDriverManager().install()),
+                options=chrome_options
+            )
             
         # Set window size
         self.driver.set_window_size(1200, 720)
         
         # Execute JavaScript to mask WebDriver presence
-        self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")    
+        self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        
+    except Exception as e:
+        print(f"Error setting up ChromeDriver: {str(e)}") 
 
     async def __aenter__(self):
         """Set up resources when entering context"""
