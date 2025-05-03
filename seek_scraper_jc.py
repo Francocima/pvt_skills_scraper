@@ -105,7 +105,7 @@ class SeekJobCardsScraper:
         chromedriver_path = '/usr/local/bin/chromedriver'
         
         self.driver = webdriver.Chrome(
-            service=Service(chromedriver_path),  # change to chromedriver_path to use in sevalla
+            service=Service(ChromeDriverManager().install()),  # This line dynamically gets the right driver
             options=chrome_options
         )
             
