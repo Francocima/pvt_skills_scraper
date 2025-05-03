@@ -37,20 +37,13 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Google Chrome
+
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
     && apt-get update \
     && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
-# Install ChromeDriver
-RUN wget https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/linux64/chromedriver-linux64.zip -P /tmp \
-    && unzip /tmp/chromedriver-linux64.zip -d /usr/local/bin/ \
-    && rm /tmp/chromedriver-linux64.zip \
-    && chmod +x /usr/local/bin/chromedriver-linux64/chromedriver \
-    && ln -s /usr/local/bin/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver \
-    && chromedriver --version \
-    && google-chrome --version
 
 # Set the working directory in the container
 WORKDIR /app
@@ -66,8 +59,6 @@ RUN pip install --no-cache-dir -r requirements.txt \
 # Copy the rest of the application code
 COPY . .
 
-# Ensure ChromeDriver has correct permissions
-RUN chmod +x /root/.wdm/drivers/chromedriver/linux64/*/chromedriver-linux64/chromedriver || true
 
 # Expose the port the app runs on
 EXPOSE 8080
