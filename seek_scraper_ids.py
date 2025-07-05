@@ -22,7 +22,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
-import undetected_chromedriver as uc
 
 # Create the API APP
 app = FastAPI(
