@@ -36,7 +36,7 @@ class JobSearchRequest(BaseModel):
     job_id: str
 
 class JobSearchResponseBatch(BaseModel):
-    job_id: list[str]
+    job_ids: list[str]
 
 # Create class for all the functions regarding scraping
 class SeekJobCardsScraper:
@@ -106,12 +106,11 @@ class SeekJobCardsScraper:
         ### chromedriver_path = '/usr/local/bin/chromedriver'
         
         chromedriver_path = '/usr/local/bin/chromedriver'
-         
         self.driver = webdriver.Chrome(
-             service=Service(chromedriver_path),  # change to chromedriver_path to use in sevalla
+             service=Service(ChromeDriverManager().install()),  # change to chromedriver_path to use in sevalla
              options=chrome_options
          )
-        
+
          # Set window size
         self.driver.set_window_size(1200, 720)
         
@@ -569,6 +568,44 @@ async def scrape_job_cards_endpoint(request: JobSearchRequest):
             status_code=500,
             detail=f"Scraping failed: {str(e)}"
         )
+    
+@app.post("/scrape_batch_jc")
+async def scrape_job_cards_batch_endpoint(
+    request: JobSearchResponseBatch):
+
+    try:
+        start_time = time.time()
+        all_jobs_data = []  # Initialize a list to hold all scraped job data
+
+        async with SeekJobCardsScraper(use_selenium=True) as scraper:
+            # Iterate over each job_id in the request
+            for job_id in request.job_ids:
+                job_data = await scraper.extract_job_details(str(job_id))
+                if job_data:
+                    serializable_job = {}
+                    for key, value in job_data.items():
+                        if isinstance(value, str):
+                            serializable_job[key] = scraper.sanitize_text(value)
+                        elif isinstance(value, (type, object)) and not isinstance(value, (int, float, bool, str, list, dict, type(None))):
+                            serializable_job[key] = str(value)
+                        else:
+                            serializable_job[key] = value
+                    all_jobs_data.append(serializable_job)
+        elapsed_time = time.time() - start_time
+
+        return {
+            "status": "success",
+            "job_count": len(all_jobs_data),
+            "data": all_jobs_data,
+            "elapsed_time": f"{elapsed_time:.2f} seconds"
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Scraping failed: {str(e)}"
+        )   
+
+    
 
 if __name__ == "__main__":
     # Determine port - use environment variable if available
