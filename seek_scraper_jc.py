@@ -497,6 +497,9 @@ class SeekJobCardsScraper:
         if "marketing executive" in job_title_lower:
             return "Marketing Executive"
         
+        if "marketing analyst" in job_title_lower:
+            return "Marketing Analyst"
+        
         return "unknown"
 
 
