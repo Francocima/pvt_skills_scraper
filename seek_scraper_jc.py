@@ -500,9 +500,6 @@ class SeekJobCardsScraper:
         if "marketing analyst" in job_title_lower:
             return "Marketing Analyst"
         
-        if "brand analyst" in job_title_lower:
-            return "Marketing Analyst"
-        
         return "unknown"
 
 
