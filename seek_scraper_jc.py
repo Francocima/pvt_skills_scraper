@@ -38,6 +38,10 @@ class JobSearchRequest(BaseModel):
 class JobSearchResponseBatch(BaseModel):
     job_ids: list[str]
 
+class WebhookJobSearchRequest(BaseModel):
+    job_ids: list[str]
+    webhook_url: HttpUrl
+
 # Create class for all the functions regarding scraping
 class SeekJobCardsScraper:
 
@@ -502,11 +506,39 @@ class SeekJobCardsScraper:
         
         return "unknown"
 
+    async def send_to_webhook(url: str, data: dict) -> dict:
+        """
+        Sends JSON data to a specified webhook URL using POST.
+
+        Args:
+            url (str): Webhook URL to send the data to.
+            data (dict): JSON-serializable data to send.
+
+        Returns:
+            dict: Response status and message.
+        """
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=data) as response:
+                    response_text = await response.text()
+                    return {
+                        "status": "sent",
+                        "webhook_status": response.status,
+                        "webhook_response": response_text
+                    }
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": str(e)
+            }
 
 
 # Creates a directory to save the results if it doesnt exists
 RESULTS_DIR = "results"
 os.makedirs(RESULTS_DIR, exist_ok=True)
+
+
+
 
 
 # Define the API endpoints
@@ -608,6 +640,51 @@ async def scrape_job_cards_batch_endpoint(
             detail=f"Scraping failed: {str(e)}"
         )   
 
+@app.post("/scrape_webhook_jc")
+async def scrape_and_send_to_webhook(request: WebhookJobSearchRequest):
+    """
+    Scrape job details and send results to a specified webhook URL.
+    """
+    try:
+        start_time = time.time()
+        all_jobs_data = []
+
+        async with SeekJobCardsScraper(use_selenium=True) as scraper:
+            for job_id in request.job_ids:
+                job_data = await scraper.extract_job_details(str(job_id))
+                if job_data:
+                    serializable_job = {}
+                    for key, value in job_data.items():
+                        if isinstance(value, str):
+                            serializable_job[key] = scraper.sanitize_text(value)
+                        elif isinstance(value, (type, object)) and not isinstance(value, (int, float, bool, str, list, dict, type(None))):
+                            serializable_job[key] = str(value)
+                        else:
+                            serializable_job[key] = value
+                    all_jobs_data.append(serializable_job)
+
+        elapsed_time = time.time() - start_time
+
+        webhook_payload = {
+            "status": "success",
+            "job_count": len(all_jobs_data),
+            "data": all_jobs_data,
+            "elapsed_time": f"{elapsed_time:.2f} seconds"
+        }
+
+        webhook_response = await send_to_webhook(request.webhook_url, webhook_payload)
+
+        return {
+            "status": "dispatched",
+            "job_count": len(all_jobs_data),
+            "webhook_result": webhook_response
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Webhook scraping failed: {str(e)}"
+        )
     
 
 if __name__ == "__main__":
