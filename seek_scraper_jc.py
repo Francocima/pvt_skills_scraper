@@ -22,6 +22,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
+import undetected_chromedriver as uc
 
 # Create the API APP
 app = FastAPI(
@@ -34,10 +35,11 @@ app = FastAPI(
 class JobSearchRequest(BaseModel):
     job_id: str
 
+class JobSearchResponseBatch(BaseModel):
+    job_ids: list[str]
+
 # Create class for all the functions regarding scraping
 class SeekJobCardsScraper:
-
-    
 
     def __init__(self, use_selenium=True):
         """
@@ -104,12 +106,11 @@ class SeekJobCardsScraper:
         ### chromedriver_path = '/usr/local/bin/chromedriver'
         
         chromedriver_path = '/usr/local/bin/chromedriver'
-         
         self.driver = webdriver.Chrome(
-             service=Service(chromedriver_path),  # change to chromedriver_path to use in sevalla
+             service=Service(chromedriver_path),  # change to chromedriver_path to use in sevalla -- ChromeDriverManager().install()
              options=chrome_options
          )
-        
+
          # Set window size
         self.driver.set_window_size(1200, 720)
         
@@ -496,34 +497,11 @@ class SeekJobCardsScraper:
         if "marketing executive" in job_title_lower:
             return "Marketing Executive"
         
+        if "marketing analyst" in job_title_lower:
+            return "Marketing Analyst"
+        
         return "unknown"
 
-
-
-async def save_to_json(self, jobs_data: List[Dict], filename: str = 'seek_job_cards.json'):
-        """
-        Save scraped job data to a JSON file
-        
-        Args:
-            jobs_data: List of job data dictionaries
-            filename: Name of the output JSON file
-        """
-        # Ensure all job details are fully resolved
-        scraped_jobs = []
-        for job in jobs_data:
-            # Create a new dict with resolved values
-            scraped_job = {}
-            for key, value in job.items():
-                if key == 'posted_date':
-                    # Ensure these values are strings
-                    scraped_job[key] = self.sanitize_text(value)
-                else:
-                    scraped_job[key] = value
-            scraped_jobs.append(scraped_job)
-
-        with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(scraped_jobs, f, ensure_ascii=False, indent=2)
-        print(f"\nSaved {len(scraped_jobs)} job cards to {filename}")
 
 
 # Creates a directory to save the results if it doesnt exists
@@ -554,41 +532,37 @@ async def health_check():
 @app.post("/scrape_jc")
 async def scrape_job_cards_endpoint(request: JobSearchRequest):
     """
-    Endpoint to scrape job details based on job ID
+    Endpoint to scrape job details based on a list of job IDs
     
     Returns the scraped job details directly in the response
     """
     try:
         start_time = time.time()
+        all_jobs_data = [] # Initialize a list to hold all scraped job data
 
         # Run the scraper
         async with SeekJobCardsScraper(use_selenium=True) as scraper:
-            job_data = await scraper.extract_job_details(str(request.job_id))
+            # Iterate over each job_id in the request
+            for job_id in request.job_ids:
+                job_data = await scraper.extract_job_details(str(job_id))
+                if job_data: # Only add if job_data is not None
+                    # Ensure all values are properly serializable for each job
+                    serializable_job = {}
+                    for key, value in job_data.items():
+                        if isinstance(value, str):
+                            serializable_job[key] = scraper.sanitize_text(value)
+                        elif isinstance(value, (type, object)) and not isinstance(value, (int, float, bool, str, list, dict, type(None))):
+                            serializable_job[key] = str(value)
+                        else:
+                            serializable_job[key] = value
+                    all_jobs_data.append(serializable_job)
 
         elapsed_time = time.time() - start_time
         
-        # Check if job_data is None
-        if job_data is None:
-            return {
-                "status": "error",
-                "message": "Failed to retrieve job details",
-                "elapsed_time": f"{elapsed_time:.2f} seconds"
-            }
-        
-        # Process a single job dictionary, not a list
-        serializable_job = {}
-        for key, value in job_data.items():
-            # Use sanitize_text for string values
-            if isinstance(value, str):
-                serializable_job[key] = scraper.sanitize_text(value)
-            elif isinstance(value, (type, object)) and not isinstance(value, (int, float, bool, str, list, dict, type(None))):
-                serializable_job[key] = str(value)
-            else:
-                serializable_job[key] = value
-        
         return {
             "status": "success",
-            "data": serializable_job,
+            "job_count": len(all_jobs_data),
+            "data": all_jobs_data,
             "elapsed_time": f"{elapsed_time:.2f} seconds"
         }
     
@@ -597,6 +571,44 @@ async def scrape_job_cards_endpoint(request: JobSearchRequest):
             status_code=500,
             detail=f"Scraping failed: {str(e)}"
         )
+    
+@app.post("/scrape_batch_jc")
+async def scrape_job_cards_batch_endpoint(
+    request: JobSearchResponseBatch):
+
+    try:
+        start_time = time.time()
+        all_jobs_data = []  # Initialize a list to hold all scraped job data
+
+        async with SeekJobCardsScraper(use_selenium=True) as scraper:
+            # Iterate over each job_id in the request
+            for job_id in request.job_ids:
+                job_data = await scraper.extract_job_details(str(job_id))
+                if job_data:
+                    serializable_job = {}
+                    for key, value in job_data.items():
+                        if isinstance(value, str):
+                            serializable_job[key] = scraper.sanitize_text(value)
+                        elif isinstance(value, (type, object)) and not isinstance(value, (int, float, bool, str, list, dict, type(None))):
+                            serializable_job[key] = str(value)
+                        else:
+                            serializable_job[key] = value
+                    all_jobs_data.append(serializable_job)
+        elapsed_time = time.time() - start_time
+
+        return {
+            "status": "success",
+            "job_count": len(all_jobs_data),
+            "data": all_jobs_data,
+            "elapsed_time": f"{elapsed_time:.2f} seconds"
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Scraping failed: {str(e)}"
+        )   
+
+    
 
 if __name__ == "__main__":
     # Determine port - use environment variable if available
