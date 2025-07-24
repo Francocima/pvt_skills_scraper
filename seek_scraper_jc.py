@@ -565,7 +565,7 @@ async def background_scrape_and_send(job_ids: List[str], webhook_url: str):
             # You can add a timestamp here instead of elapsed time
             "timestamp": datetime.utcnow().isoformat() + "Z"
         }
-        send_to_webhook(webhook_url, webhook_payload)
+        await send_to_webhook(webhook_url, webhook_payload)
 
 
 # Define the API endpoints
