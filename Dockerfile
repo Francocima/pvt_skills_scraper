@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     curl \
     # Install dependencies for Chrome
-    libgconf-2-4 \
+    #libgconf-2-4 \
     # Install Chrome dependencies
     libx11-6 \
     libx11-xcb1 \
@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y \
     libatk-bridge2.0-0 \
     libpango-1.0-0 \
     libcairo2 \
-    libgdk-pixbuf2.0-0 \
+    #libgdk-pixbuf2.0-0 \
     libgtk-3-0 \
     ca-certificates \
     # Clean up
