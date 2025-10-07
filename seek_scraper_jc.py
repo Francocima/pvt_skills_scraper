@@ -413,6 +413,19 @@ class SeekJobCardsScraper:
             except Exception as e:
                 job_details['job_type'] = "unknown"
 
+
+            try:
+                job_industry_element = soup.select_one('[data-automation="job-detail-classifications"], .j1ww7nx7')
+                job_details['job_industry'] = self.sanitize_text(job_industry_element.text.strip() if job_industry_element else "Industry not found")
+            except Exception as e:
+                job_details['job_industry'] = "Industry not found"
+
+            try:
+                job_work_type_element = soup.select_one('[data-automation="job-detail-work-type"], .j1ww7nx7')
+                job_details['job_work_type'] = self.sanitize_text(job_work_type_element.text.strip() if job_work_type_element else "Work type not found")
+            except Exception as e:
+                job_details['job_work_type'] = "Work type not found"
+
             return job_details #returns the dictionary after finishing the extraction 
 
         except Exception as e:
