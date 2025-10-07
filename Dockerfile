@@ -55,13 +55,16 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
 
 
  # Install ChromeDriver
-ARG CHROME_VERSION="138.0.7204.92"
-RUN wget -q "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chromedriver-linux64.zip" -P /tmp && \
-    unzip /tmp/chromedriver-linux64.zip -d /usr/local/bin/ && \
-    ln -sf /usr/local/bin/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
-    chmod +x /usr/local/bin/chromedriver && \
-    rm -rf /tmp/chromedriver-linux64.zip && \
-    google-chrome --version && chromedriver --version
+RUN set -eux; \
+    CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+(\.[0-9]+){3}' | cut -d '.' -f 1); \
+    echo "Detected Chrome major version: $CHROME_VERSION"; \
+    DRIVER_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${CHROME_VERSION}"); \
+    echo "Matching ChromeDriver version: $DRIVER_VERSION"; \
+    wget -q "https://storage.googleapis.com/chrome-for-testing-public/${DRIVER_VERSION}/linux64/chromedriver-linux64.zip" -P /tmp; \
+    unzip -q /tmp/chromedriver-linux64.zip -d /usr/local/bin/; \
+    ln -sf /usr/local/bin/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver; \
+    chmod +x /usr/local/bin/chromedriver; \
+    rm -rf /tmp/chromedriver-linux64.zip
  
  # Set the working directory in the container
  WORKDIR /app
