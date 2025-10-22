@@ -485,6 +485,15 @@ class SeekJobCardsScraper:
 
         if "social media manager" in job_title_lower:
             return "Social Media Manager"
+        
+        if "software developer" in job_title_lower:
+            return "Software Developer"
+        
+        if "software engineer" in job_title_lower:
+            return "Software Engineer"
+        
+        if "UX designer" in job_title_lower:
+            return "UX Designer"
 
         if "content marketer" in job_title_lower:
             return "Content Marketer"
