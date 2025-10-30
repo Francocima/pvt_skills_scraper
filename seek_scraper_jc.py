@@ -450,9 +450,6 @@ class SeekJobCardsScraper:
         if "data engineer" in job_title_lower:
             return "Data Engineer"
         
-        if "engineer" in job_title_lower:
-            return "Data Engineer"
-        
         if "business analyst" in job_title_lower:
             return "Business Analyst"   
         
@@ -492,7 +489,7 @@ class SeekJobCardsScraper:
         if "software engineer" in job_title_lower:
             return "Software Engineer"
         
-        if "UX designer" in job_title_lower:
+        if "ux designer" in job_title_lower:
             return "UX Designer"
 
         if "content marketer" in job_title_lower:
