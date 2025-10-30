@@ -454,8 +454,8 @@ class SeekJobCardsScraper:
             return "Business Analyst"   
         
         if "analytics analyst" in job_title_lower:
-            return "Analytcis Engineer" 
-        
+            return "Analytics Engineer"
+
         if "data scientist" in job_title_lower:
             return "Data Scientist" 
         
